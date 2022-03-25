@@ -1,0 +1,358 @@
+---
+title: "Chapter2 潜在的結果変数の枠組み"
+author: "Takehito Oshita"
+output: 
+  slidy_presentation:
+    font_adjustment: -1
+---
+
+本章で使うデータを読み込んでおきます
+
+```{r データ読み込み, warning=FALSE}
+library(tibble)
+library(knitr)
+library(kableExtra)
+
+rm(list=ls())
+
+url.data.file <- "https://raw.githubusercontent.com/mtakahashi123/causality/main/data03.csv"
+D <- read.csv(url(url.data.file))
+
+tabular <- function(df, color=F, title="表"){
+    df %>%
+    rownames_to_column(var="ID") %>%
+    kable(caption=title) %>%
+    kable_styling(fixed_thead=T, bootstrap_options=c("striped", "hover", "condensed"))
+}
+
+tabular(D)
+```
+
+------------------------------------------------------------------------
+
+# 3.1 SUTVA
+
+-   
+
+    ## SUTVA: Stable Unit Treatment Value Assumption
+
+        1.  相互干渉がない（no interference）
+
+    -   
+
+        2.  個体に対する隠れた処置がない（no hidden variations of treatments）
+
+------------------------------------------------------------------------
+
+# 3.3 条件付き確率と独立性
+
+-   排反
+    -   $\Pr(A|B) = 0$
+    -   これは、$\Pr(A \cap B) = 0$ と同値
+-   独立
+    -   $\Pr(A|C) = \Pr(A)$
+    -   これは、$\Pr(A \cap C) = \Pr(A) \cdot \Pr(C)$ と同値 （ただし、$\Pr(C)\neq 0$ の時）
+
+------------------------------------------------------------------------
+
+# 3.5 識別性の条件
+
+-   識別性 = 正値性 + 独立性
+    -   正値性：$0 < \Pr(T=1) < 1$
+        -   処置に割付けられる確率が、0 または 1 であってはならない
+    -   独立性：$\{Y(1), Y(0)\} \bot T$
+        -   処置の割付けが、潜在的結果変数に依存して行われてはいけない
+
+------------------------------------------------------------------------
+
+# 3.6 実験研究における平均処置効果（ATE）の推定
+
+観測値$Y_i$
+
+$$
+Y_i = (1 - T_i) Y_i(0) + T_i Y_i(1)
+$$
+
+処置$T_i$ が、潜在的結果変数 $\{Y_i(1), Y_i(1)\}$ と独立（$\{Y_i(1), Y_i(1)\} \bot T_i$） の時 (i.e. $E[Y|T] = E[Y]$)
+
+$$
+E[Y_i | T_i = 1] = E[Y_i(1) | T_i = 1] = E[Y_i(1)] \\
+E[Y_i | T_i = 0] = E[Y_i(0) | T_i = 0] = E[Y_i(0)] \\
+$$
+
+平均処置効果（ATE） は
+
+$$
+\tau_{ATE} = E[Y_i(1)] - E[Y_i(0)] = E[Y_i | T_i = 1] - E[Y_i | T_i = 0]
+$$
+
+------------------------------------------------------------------------
+
+# 3.7 独立性と条件付き独立性：シンプソンのパラドックス
+
+$A \bot B | C \overset{\text{def}}{\Leftrightarrow} \Pr(A | B, C) = \Pr(A | C)$
+
+ここで、
+
+$$
+if ~ \Pr(C) \neq 0, \Pr(B, C) \neq 0, \\
+\Pr(A | B, C) = \Pr(A | C) \Leftrightarrow \Pr(A, B | C) = \Pr(A | C) \Pr(B | C)
+$$ ただし、$\Pr(A, B) := \Pr(A \cap B)$, 同様に、$\Pr(A_1, ..., A_n) := \Pr(\bigcap_{i=1}^{n} A_i)$
+
+証明
+
+$$
+\begin{align}
+if ~ & \Pr(A | B, C) = \Pr(A | C), \\
+\Pr(A, B | C) \Pr(C) &= \Pr(A, B, C) \\
+                     &= \Pr(A | B, C) \Pr(B, C) \\
+                     &= \Pr(A | B, C) \Pr(B | C) \Pr(C) \\
+                     &= \Pr(A | C) \Pr(B | C) \Pr(C) & (\because condition) \\
+\therefore \Pr(A, B | C) \Pr(C) &= \Pr(A | C) \Pr(B | C)  & (\because \Pr(C) \neq 0) \\
+\\
+while ~ if ~ & \Pr(A, B | C) = \Pr(A | C) \Pr(B | C), \\
+\Pr(A | B, C) \Pr(B, C) &= \Pr(A, B, C) \\
+                        &= \Pr(A, B | C) \Pr(C) \\
+                        &= \Pr(A | C) \Pr(B | C) \Pr(C) & (\because condition) \\
+                        &= \Pr(A | C) \Pr(B, C)\\
+\therefore \Pr(A | B, C) &= \Pr(A | C)  & (\because \Pr(B, C) \neq 0)
+\end{align}
+$$
+
+-   シンプソンのパラドックス
+    -   「独立ならば条件付き独立」とは限らない
+    -   「条件付き独立ならば独立」とも限らない
+-   例：表3.1
+    -   独立$Y \bot T$ でないが、条件付き独立 $Y \bot T | X$
+
+#### 表3.1
+
+表3.1a
+
+|  全体  | 効果あり | 効果なし | 計  | 有効割合 |
+|:------:|:--------:|:--------:|:---:|:--------:|
+| 処置群 |   156    |   124    | 280 |  0.557   |
+| 統制群 |   107    |   183    | 290 |  0.369   |
+|   計   |   263    |   307    | 570 |  0.461   |
+
+表3.1b
+
+|  男性  | 効果あり | 効果なし | 計  | 有効割合 |
+|:------:|:--------:|:--------:|:---:|:--------:|
+| 処置群 |   126    |    54    | 180 |  0.700   |
+| 統制群 |    35    |    15    | 50  |  0.700   |
+|   計   |   161    |    69    | 230 |  0.700   |
+
+表3.1c
+
+|  女性  | 効果あり | 効果なし | 計  | 有効割合 |
+|:------:|:--------:|:--------:|:---:|:--------:|
+| 処置群 |    30    |    70    | 100 |  0.300   |
+| 統制群 |    72    |   168    | 240 |  0.300   |
+|   計   |   102    |   238    | 340 |  0.300   |
+
+確認用
+
+|  全体  | 効果あり | 効果なし | 計  | 有効割合 |
+|:------:|:--------:|:--------:|:---:|:--------:|
+| 男性計 |   161    |    69    | 230 |  0.700   |
+| 女性計 |   102    |   238    | 340 |  0.300   |
+| 全体計 |   263    |   307    | 570 |  0.461   |
+
+-   表3.1a: 570人の被験者全体
+
+    -   処置群：有効割合は、0.536
+    -   統制群：有効割合は、0.369
+    -   処置の有無と効果に関係があるように見える
+
+-   表3.1b, 表3.1c
+
+    -   被験者570人を、男性230人と女性340人に分けて効果を見ている
+    -   i.e. 条件付きで処置の有無を見ている
+        -   $E[Y_i|X_1=男性], E[Y_i|X_1=女性]$
+
+-   表3.1b
+
+    -   男性において、処置群と統制群のいずれも有効割合は、0.7 で同じ
+
+-   表3.1c
+
+    -   女性において、処置群と統制群のいずれも有効割合は、0.3 で同じ
+
+-   つまり、男性・女性、それぞれの集団において、処置の有無と効果に関係がない、ということである
+
+-   統計的因果推論の立場
+
+    -   データ全体で独立でなかったとしても、共変量（covariate）に条件づけられた場合には、独立とみなしうる
+
+------------------------------------------------------------------------
+
+# 3.8 共変量の役割
+
+共変量$\mathbf{X}$ を条件とした時、処置の割付け変数$T_i$ が潜在的結果変数の組$\{Y_i(1), Y_i(0)\}$ と独立
+
+$$
+\{Y_i(1), Y_i(0)\} \bot \mathbf{X}
+\tag{3.16}
+$$
+
+条件付き正値性
+
+$$
+0 < \Pr(T=1|\mathbf{X}) < 1
+\tag{3.17}
+$$
+
+-   強い意味での無視可能な割付け （strongly ignorable treatment assignment）
+    -   SUTVA が成り立つと仮定して、式(3.16), 式(3.17) が成り立つ
+    -   この条件は、計量経済学、計量政治学では以下のことが知られている
+        -   観測値による選択（selection on observables）がない
+        -   除外変数による偏り（ommited variable bias）がない
+
+$$
+E[Y_i | T_i = 1, \mathbf{X}] = E[Y_i(1) | T_i = 1, \mathbf{X}] = E[Y_i(1) | \mathbf{X}] \\
+E[Y_i | T_i = 0, \mathbf{X}] = E[Y_i(0) | T_i = 0, \mathbf{X}] = E[Y_i(0) | \mathbf{X}] \\
+\\
+E[Y_i | T_i = 1, \mathbf{X}] - E[Y_i | T_i = 0, \mathbf{X}] = E[Y_i(1) | \mathbf{X}] - E[Y_i(0) | \mathbf{X}] \\
+$$
+
+```{r}
+tabular(D)
+```
+
+```{r}
+summary(D)
+
+```
+
+```{r}
+attach(D)
+
+```
+
+```{r}
+mean(y3[t1==1]) - mean(y3[t1==0])  # ナイーブな推定量
+
+mean(y1t) - mean(y0t)   # 平均処置効果ATE の真の値
+
+```
+
+「無視可能な割付け」とは、ナイーブな推定量など、**「割付けを無視して解析してよい」ことは意味していない！**
+
+では、どういう意味で、「無視可能な割付け」なのであろうか？！
+
+------------------------------------------------------------------------
+
+# 3.9 回帰分析と共分散分析
+
+```{r}
+x1
+y3
+```
+
+図3.4
+
+```{r}
+plot(x1, y3, xlab="入学試験", ylab="期末試験", xlim=c(60, 100), ylim=c(60, 100), pch="o", family= "HiraKakuProN-W3")
+
+model <- lm(y3 ~ x1)
+abline(model, col=2)
+
+```
+
+図3.5
+
+```{r}
+x1.1 <- x1[t1==1]
+x1.0 <- x1[t1==0]
+
+y3.1 <- y3[t1==1]
+y3.0 <- y3[t1==0]
+
+
+# c(6, "x", "a")[unclass(t1)]
+
+plot(x1.1, y3.1, xlab="入学試験", ylab="期末試験", xlim=c(60, 100), ylim=c(60, 100), pch=2, family="HiraKakuProN-W3")
+
+model.1 <- lm(y3.1 ~ x1.1)
+abline(model.1, col=2)
+
+par(new=T)
+plot(x1.0, y3.0, xlab="入学試験", ylab="期末試験", xlim=c(60, 100), ylim=c(60, 100), pch=4, family="HiraKakuProN-W3")
+
+model.0 <- lm(y3.0 ~ x1.0)
+abline(model.0, col=2)
+
+```
+
+-   上記回帰直線間の縦方向の差が、平均処置効果（ATE）
+-   「処置の割付けが無視可能」
+    -   共変量（入学試験の点数）に条件つけた場合に、処置群と統制群の結果変数（期末試験の点数）の平均的な差を取れば良い、ことを意味している
+-   回帰分析
+    -   $Y_i = \beta_0 + \beta_1 X_i + \varepsilon_i$
+-   回帰モデル
+    -   $\hat{Y_i} = \hat{\beta_0} + \hat{\beta_1} X_i$
+-   分散分析（ANOVA: ANalysis Of VAriance）
+    -   $Y_i = \beta_0 + \beta_2 T_i + \varepsilon_i$
+    -   $\hat{Y_i} = \hat{\beta_0} + \hat{\beta_2} T_i$
+    -   $T_i \in \{0, 1\}$
+-   共分散分析（ANCOVA: ANalysis of COVAriance）
+    -   $Y_i = \beta_0 + \beta_1 X_i + \beta_2 T_i + \varepsilon_i$
+    -   $\hat{Y_i} = \hat{\beta_0} + \hat{\beta_1} X_i + \hat{\beta_2} T_i$
+    -   $T_i \in \{0, 1\}$
+    -   i.e. ダミー変数（処置の割付け変数）を説明変数として持つ重回帰分析
+
+$T_i = 0$ の時
+
+$$
+\begin{align}
+ & \hat{Y_i} = \hat{\beta_0} + \hat{\beta_1} X_i + \hat{\beta_2} T_i \\
+\Rightarrow & \hat{Y_i} = \hat{\beta_0} + \hat{\beta_1} X_i \\
+\tag{3.27}
+\end{align}
+$$
+
+$T_i = 1$ の時
+
+$$
+\begin{align}
+ & \hat{Y_i} = \hat{\beta_0} + \hat{\beta_1} X_i + \hat{\beta_2} T_i \\
+\Rightarrow & \hat{Y_i} = (\hat{\beta_0} + \hat{\beta_2}) + \hat{\beta_1} X_i \\
+\tag{3.27}
+\end{align}
+$$
+
+つまり、$\hat{\beta_2}$ が、平均処置効果（ATE）
+
+共分散分析でモデリング
+
+```{r}
+model.ancova <- lm(y3 ~ x1 + t1)
+summary(model.ancova)
+confint(model.ancova, level=0.95)
+```
+
+平均処置効果は、$t1$ の `Estimate` の値、$9.81592 \approx 9.82$ である その95% 信頼区間は、$8.91 \sim 10.72$ である
+
+真のATE は、9.8 であった
+
+```{r}
+mean(y1t) - mean(y0t)
+```
+
+つまり、「無視可能な割付け」であれば、共変量の情報に条件づけることで、平均処置効果（ATE）を適切に推定できていることがわかる
+
+散布図
+
+```{r}
+plot(x1.0, y3.0, xlab="入学試験", ylab="期末試験", xlim=c(60, 100), ylim=c(60, 100), pch=4, family="HiraKakuProN-W3")
+par(new=T)
+plot(x1.1, y3.1, xlab="入学試験", ylab="期末試験", xlim=c(60, 100), ylim=c(60, 100), pch=2, family="HiraKakuProN-W3")
+
+b0 <- summary(model.ancova)$coefficients[1]
+b1 <- summary(model.ancova)$coefficients[2]
+b2 <- summary(model.ancova)$coefficients[3]
+
+abline(a=b0, b=b1, col=2)
+abline(a=b0+b2, b=b1, col=2)
+```
