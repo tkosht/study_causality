@@ -1,0 +1,101 @@
+---
+title: "Chapter7 XXX"
+author: "Takehito Oshita"
+output: 
+  slidy_presentation:
+    font_adjustment: -1
+---
+
+
+本章で使うデータを読み込んでおきます
+
+```{r データ読み込み, warning=FALSE}
+library(tibble)
+library(knitr)
+library(kableExtra)
+```
+
+```{r}
+rm(list=ls())
+
+load_data <- function(ch){
+  url.data.file <- sprintf("https://raw.githubusercontent.com/mtakahashi123/causality/main/data07%s.csv", ch)
+  D <- read.csv(url(url.data.file))
+  return(D)  
+}
+
+Da <- load_data("a")
+Db <- load_data("b")
+Dc <- load_data("c")
+Dd <- load_data("d")
+
+tabular <- function(df, color=F, title="表"){
+    df %>%
+    rownames_to_column(var="ID") %>%
+    kable(caption=title) %>%
+    kable_styling(fixed_thead=T, bootstrap_options=c("striped", "hover", "condensed"))
+}
+
+# tabular(D[1:5, ])
+```
+
+```{r}
+library(car)
+```
+
+```{r}
+model12 <- lm(y1 ~ x1 + x3, data=Db)
+model13 <- lm(y1 ~ log(x1) + log(x3), data=Db)
+model14 <- lm(log(y1) ~ x1 + x3, data=Db)
+model15 <- lm(log(y1) ~ log(x1) + log(x3), data=Db)
+
+crPlots(model12)
+crPlots(model13)
+crPlots(model14)
+crPlots(model15)
+```
+
+```{r}
+model16 <- lm(log(y1) ~ x1 + log(x3), data=Db)
+
+crPlots(model16)
+
+summary(model16)
+
+```
+
+```{r}
+head(Dc)
+```
+
+```{r}
+model17 <- lm(y1 ~ x1, data=Dc)
+model18 <- lm(y1 ~ x1 + x2, data=Dc)
+model19 <- lm(y1 ~ x1 + x2 + x3, data=Dc)
+
+summary(model17)
+summary(model18)
+summary(model19)
+```
+
+```{r}
+confint(model18)
+confint(model19)
+```
+
+```{r}
+head(Dd)
+
+```
+
+```{r}
+model20 <- lm(y1 ~ x1, data=Dd)
+model21 <- lm(y1 ~ x1 + x2, data=Dd)
+
+summary(model20)
+summary(model21)
+```
+
+
+
+**End.**

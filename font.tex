@@ -1,0 +1,42 @@
+\usepackage[japanese]{babel}
+
+\usepackage{fontspec}
+
+%欧文ローマン体の設定
+\setmainfont[Scale=MatchUppercase]{TeX Gyre Termes} %いわゆるTimes New Roman
+
+%欧文サンセリフ体の設定
+\setsansfont[Scale=1]{TeX Gyre Heros} %いわゆるHelveticaもしくはArial
+
+%欧文タイプライタ体の設定
+\setmonofont[Scale=MatchLowercase]{zcoN} %Courierの横幅がすっきりした書体
+
+%数学モードで使う書体の設定
+%\usepackage{mathtools}
+%\usepackage{amsmath}
+%\usepackage{mathspec}
+%\usepackage{unicode-math} %勝手に読み込まれるmathspecパッケージと相性が悪いのでロードしない
+%\setmathfont[Scale=MatchUppercase]{Garamond-math.otf}  %
+
+%\setmathfont(Digits,Latin,Greek)[Scale=MatchUppercase]{TeX Gyre Termes}
+%\setmathfont[Scale=MatchUppercase]{TeX Gyre Termes}
+\setmathfont[Scale=MatchUppercase]{TeX Gyre Termes Math} %Beamerでは適用できるが、article系統では適用できない？
+
+\setmathrm{TeX Gyre Termes}
+%https://tex.stackexchange.com/questions/11058/how-do-i-change-the-math-italic-font-in-xetex-fontspec
+
+%日本語フォント設定のために読み込む
+\usepackage{zxjatype}
+%\usepackage[deluxe]{otf} %platexが必要なのでRmarkdown単体では使えない
+
+\setjafontscale{1} %日本語フォントの大きさを、欧文フォントと釣り合うようにする%
+
+%日本語明朝体の設定（太字も設定）
+\setjamainfont[BoldFont=SourceHanSerifJP-Bold.otf]{SourceHanSerifJP-Light.otf}
+
+%日本語ゴシック体の設定（太字も設定）
+\setjasansfont[Scale=1,BoldFont=SourceHanSansJP-Medium.otf]{SourceHanSansJP-Light.otf}
+
+%日本語タイプライタ体の設定
+\setjamonofont{SourceHanSansJP-Normal.otf}
+
